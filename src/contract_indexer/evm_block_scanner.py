@@ -3,11 +3,9 @@ import logging
 from typing import Dict, Any, List, Tuple
 import aiomysql
 
-# Обновленные импорты
 from ..db_class.repositories.evm_block_scanner_repository import EvmBlockScannerRepository
 from ..providers.api_client_interface import AbstractAPIClient
 
-# Настройка логирования
 logger = logging.getLogger(__name__)
 
 class EvmBlockScanner:
@@ -68,11 +66,18 @@ class EvmBlockScanner:
                     for b in blocks_to_scan
                 ]
                 # Ожидаем завершения всех API запросов
-                api_results = await asyncio.gather(*api_tasks) 
+                # return_exceptions=True, чтобы одна ошибка API не уронила всю пачку
+                api_results = await asyncio.gather(*api_tasks, return_exceptions=True) 
 
                 # 4. Обработать результаты API ПОСЛЕДОВАТЕЛЬНО
                 for block_info, block_data in zip(blocks_to_scan, api_results):
                     block_id = block_info['id']
+                    
+                    # Если gather вернул ошибку для этого API-запроса
+                    if isinstance(block_data, Exception):
+                        logger.error(f"EvmBlockScanner: API Error processing block_id={block_id}. Error: {block_data}")
+                        raise block_data # <--- Выбрасываем ошибку, чтобы откатить ВСЮ транзакцию
+                    
                     chain_id = block_info['evm_network_chain_id']
                     
                     if not block_data or 'transactions' not in block_data:
@@ -102,41 +107,3 @@ class EvmBlockScanner:
                 # Откат транзакции при любой ошибке (API или БД)
                 await conn.rollback() 
                 logger.error(f"EvmBlockScanner: Failed to process block batch. Transaction rolled back. Error: {e}", exc_info=True)
-
-    async def _process_block(self, conn: aiomysql.Connection, block: Dict[str, Any]):
-        """
-        Обрабатывает один блок: запрашивает API, ищет транзакции, 
-        сохраняет их и помечает блок как завершенный (status=2).
-        """
-        block_id = block['id']
-        chain_id = block['evm_network_chain_id']
-        block_number = block['block_number']
-        
-        logger.debug(f"EvmBlockScanner: Processing block_id={block_id} (Chain: {chain_id}, Block: {block_number})")
-
-        # 1. API запрос (внутри транзакции)
-        block_data = await self._api.get_block_by_number(chain_id, block_number)
-        
-        if not block_data or 'transactions' not in block_data:
-            logger.warning(f"EvmBlockScanner: No data or transactions found for block_id={block_id}.")
-            # Помечаем блок как завершенный, т.к. в нем нет транзакций
-            await self._repository.mark_block_as_completed(conn, block_id)
-            return
-
-        contract_txs_to_insert: List[Tuple[int, int, str]] = []
-        
-        # 2. Поиск транзакций создания контрактов
-        for tx in block_data['transactions']:
-            # Транзакция создания контракта, если 'to' == null
-            if tx.get('to') is None:
-                tx_hash = tx.get('hash')
-                if tx_hash:
-                    contract_txs_to_insert.append((block_id, chain_id, tx_hash))
-
-        # 3. Массовая вставка найденных транзакций
-        if contract_txs_to_insert:
-            logger.info(f"EvmBlockScanner: Found {len(contract_txs_to_insert)} contract creation(s) in block_id={block_id}.")
-            await self._repository.batch_insert_contract_txs(conn, contract_txs_to_insert)
-        
-        # 4. Пометить блок как завершенный (status=2)
-        await self._repository.mark_block_as_completed(conn, block_id)

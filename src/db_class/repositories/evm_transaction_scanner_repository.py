@@ -1,4 +1,3 @@
-# src/db_class/repositories/evm_transaction_scanner_repository.py
 import logging
 from typing import List, Dict, Any
 import aiomysql
