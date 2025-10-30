@@ -140,7 +140,7 @@ class EvmContractSourceScannerRepository(BaseRepository):
              token_address, token_ticker, token_decimals, 
              token_analysis_status, token_security_report, 
              active_status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, FROM_UNIXTIME(%s), FROM_UNIXTIME(%s), %s, %s, %s, %s, %s, %s, %s)
         """
         params = (
             chain_id, source_id, contract_address,
