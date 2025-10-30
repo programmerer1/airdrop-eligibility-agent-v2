@@ -107,11 +107,18 @@ Before launching the containers, you can add EVM networks for the scanners. To d
 
 ## Description of the fields in the evm_network table:
 
-    - chain_id - EVM network identifier
-    - chain_name - EVM network name
-    - created_at - This field is automatically set when inserting a new record (Network)
-    - discovered_at - Time of the scanner's last interaction with this record (**For scanners only**) 
-    - last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**)
-    - active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks
-    - processing_status - 0 - Available for processing, 1 - The scanner has locked and is working with this network (**For scanners only**)
-    - finality_depth - Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest  network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won't "disappear" due to block reversal.
+- chain_id - EVM network identifier
+
+- chain_name - EVM network name
+
+- created_at - This field is automatically set when inserting a new record (Network)
+
+- discovered_at - Time of the scanner's last interaction with this record (**For scanners only**)
+
+- last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**)
+
+- active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks
+
+- processing_status - 0 - Available for processing, 1 - The scanner has locked and is working with this network (**For scanners only**)
+
+- finality_depth - Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest  network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won't "disappear" due to block reversal.
