@@ -1,5 +1,9 @@
 # Airdrop Eligibility Checker Agent V2
 
+<p align="center">
+    <img src="https://github.com/programmerer1/airdrop-eligibility-agent-v2/blob/main/logo.jpeg" width="300" alt="logo">
+</p>
+
 This project is an automated system for the continuous scanning of EVM-compatible blockchain networks. Its primary task is to detect newly deployed smart contracts, conduct a deep analysis of them, and identify those intended for Airdrop distribution.
 
 The system operates as an asynchronous, multi-stage pipeline. It consists of five independent services (scanners) that run in parallel. They exchange tasks and results through a shared MySQL database.
