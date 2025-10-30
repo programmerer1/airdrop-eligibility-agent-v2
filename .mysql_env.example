@@ -1,0 +1,4 @@
+MYSQL_ROOT_PASSWORD=<password_here>
+MYSQL_DATABASE=<dbname_here>
+MYSQL_USER=<username_here>
+MYSQL_PASSWORD=<password_here>

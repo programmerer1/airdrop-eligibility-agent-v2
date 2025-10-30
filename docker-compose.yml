@@ -1,0 +1,61 @@
+services:
+  airdrop-eligibility-checker:
+    build: .
+    container_name: airdrop_eligibility_checker
+    networks:
+      - airdrop-eligibility-scanner-network
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  airdrop-eligibility-scanners:
+    build: .
+    container_name: airdrop_eligibility_scanners
+    networks:
+      - airdrop-eligibility-scanner-network
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./src:/app/src
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: [ "python", "-m", "src.run_scanners" ]
+
+  mysql:
+    image: mysql:8.0
+    container_name: airdrop_eligibility_scanner_mysql
+    networks:
+      - airdrop-eligibility-scanner-network
+    env_file:
+      - .mysql_env
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      # use CMD-SHELL so that the command is executed in /bin/sh
+      # use $$MYSQL_ROOT_PASSWORD so that Docker Compose passes
+      # $MYSQL_ROOT_PASSWORD to the shell, and the shell substitutes the password.
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+
+
+networks:
+  airdrop-eligibility-scanner-network:
+    name: my-airdrop-eligibility-scanner-network
