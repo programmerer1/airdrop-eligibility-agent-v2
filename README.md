@@ -6,6 +6,11 @@ The system operates as an asynchronous, multi-stage pipeline. It consists of fiv
 
 This is an updated version of another agent (Airdrop Eligibility Checker Agent) https://github.com/programmerer1/airdrop-eligibility-agent . While in the previous version, data for the checker was added manually to a yaml file, in the new version, the program scans EVM networks (specified in the `evm_network` table), analyzes, and saves the data.
 
+The application is divided into two parts: Scanners and Agent.
+
+The agent is developed based on the Sentient Agent Framework
+https://github.com/sentient-agi/Sentient-Agent-Framework
+
 ---
 ## Scanner Lifecycle
 
