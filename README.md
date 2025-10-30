@@ -20,7 +20,7 @@ https://github.com/sentient-agi/Sentient-Agent-Framework
 
 The entire process, from block detection to final contract analysis, is divided into 5 stages, each performed by a separate service.
 
-### 1. Block Scanner (Search)
+### 1. Block Scanner
 
 * **Objective:** To find new, confirmed blocks on the networks.
 * **Process:**
@@ -29,7 +29,7 @@ The entire process, from block detection to final contract analysis, is divided 
     3.  To avoid blockchain reorganization (fork) issues, it steps back from the "tip" by a safe number of blocks (finalization depth).
     4.  New, confirmed blocks are written to the database as tasks for the next scanner.
 
-### 2. Transaction Scanner (Block Analysis)
+### 2. Transaction Scanner
 
 * **Objective:** To find transactions that created new contracts.
 * **Process:**
@@ -38,7 +38,7 @@ The entire process, from block detection to final contract analysis, is divided 
     3.  It analyzes this list and looks for a specific type of transaction: those with an indication of new contract creation.
 * **Output:** The hashes of these "creation transactions" are saved to the database as tasks for the next stage.
 
-### 3. Source Code Scanner (Download)
+### 3. Source Code Scanner
 
 * **Objective:** To get the new contract's address and its source code.
 * **Process:**
@@ -49,7 +49,7 @@ The entire process, from block detection to final contract analysis, is divided 
     3.  If the code is obtained, it is formatted into a standard JSON view (even if it was a single file) for unified processing.
 * **Output:** The source code, ABI, and contract name are saved to the database, forming a queue for the main analytical scanner.
 
-### 4. Contract Analyzer (Airdrop)
+### 4. Contract Analyzer
 
 * **Objective:** To check the contract's source code for security and Airdrop logic.
 * **Process:** This is the most complex stage, divided into several steps:
@@ -60,7 +60,7 @@ The entire process, from block detection to final contract analysis, is divided 
     5.  **Token Analysis:** If the token address is now known, the scanner queries an API (e.g., Moralis) to get the token's metadata: its ticker, decimals, and, most importantly, a security report (e.g., whether the token is spam).
 * **Output:** If all checks are passed and the contract is identified as an Airdrop, all collected data (function ABIs, token address, ticker, spam report) are written to the **final results table**.
 
-### 5. Date Scanner (Maintenance)
+### 5. Date Scanner
 
 * **Objective:** To maintain the relevance of the final Airdrop contracts table.
 * **Process:** This service periodically performs 4 tasks:
