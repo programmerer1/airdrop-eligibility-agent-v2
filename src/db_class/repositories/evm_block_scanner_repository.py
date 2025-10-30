@@ -17,7 +17,6 @@ class EvmBlockScannerRepository(BaseRepository):
         Выбирает и атомарно блокирует (SELECT ... FOR UPDATE) 
         пачку необработанных блоков.
         """
-        # --- ИЗМЕНЕНО: Добавлен SKIP LOCKED ---
         sql = """
             SELECT b.id, b.evm_network_chain_id, b.block_number 
             FROM evm_block AS b
@@ -25,7 +24,6 @@ class EvmBlockScannerRepository(BaseRepository):
             LIMIT %s
             FOR UPDATE SKIP LOCKED
         """
-        # --- Конец изменения ---
         
         async with conn.cursor(aiomysql.DictCursor) as cursor:
             await cursor.execute(sql, (batch_size,))
@@ -41,8 +39,10 @@ class EvmBlockScannerRepository(BaseRepository):
         format_strings = ','.join(['%s'] * len(block_ids))
         sql = f"UPDATE evm_block SET processing_status = %s WHERE id IN ({format_strings})"
         
+        params = (status, *block_ids) 
+        
         async with conn.cursor() as cursor:
-            await cursor.execute(sql, (status, *block_ids))
+            await cursor.execute(sql, params)
 
     async def batch_insert_contract_txs(self, conn: aiomysql.Connection, txs_data: List[Tuple[int, int, str]]):
         """
@@ -79,12 +79,13 @@ class EvmBlockScannerRepository(BaseRepository):
             return
 
         format_strings = ','.join(['%s'] * len(block_ids))
-        # Обновляем и статус, и время
         sql = f"""
             UPDATE evm_block 
             SET processing_status = 2, discovered_at = CURRENT_TIMESTAMP 
             WHERE id IN ({format_strings})
         """
         
+        params = (*block_ids,) 
+        
         async with conn.cursor() as cursor:
-            await cursor.execute(sql, (*block_ids,)) # Передаем ID как отдельные аргументы
+            await cursor.execute(sql, params)

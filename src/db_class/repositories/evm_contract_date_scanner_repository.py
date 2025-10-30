@@ -90,10 +90,14 @@ class EvmContractDateScannerRepository(BaseRepository):
     async def deactivate_contract_batch(self, conn: aiomysql.Connection, contract_ids: List[int]):
         if not contract_ids:
             return
+
         format_strings = ','.join(['%s']*len(contract_ids))
         sql = f"UPDATE evm_airdrop_eligibility_contract SET active_status = 0 WHERE id IN ({format_strings})"
+        
+        params = (*contract_ids,)
+        
         async with conn.cursor() as cursor:
-            await cursor.execute(sql, (*contract_ids,))
+            await cursor.execute(sql, params)
             
     async def update_claim_start_timestamp(self, conn: aiomysql.Connection, contract_id: int, timestamp: int):
         sql = "UPDATE evm_airdrop_eligibility_contract SET claim_start_timestamp = FROM_UNIXTIME(%s) WHERE id = %s"

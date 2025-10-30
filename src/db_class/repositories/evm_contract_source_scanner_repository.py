@@ -1,4 +1,3 @@
-# src/db_class/repositories/evm_contract_source_scanner_repository.py
 import logging
 import json
 import time
@@ -14,7 +13,6 @@ class EvmContractSourceScannerRepository(BaseRepository):
     """
 
     async def lock_and_get_unprocessed_sources(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
-        # ... (код без изменений) ...
         sql = """
             SELECT cs.id, cs.evm_network_chain_id, cs.contract_address, 
                    cs.contract_name, cs.source_code, cs.abi
@@ -28,18 +26,20 @@ class EvmContractSourceScannerRepository(BaseRepository):
 
 
     async def batch_update_source_processing_status(self, conn: aiomysql.Connection, source_ids: List[int], status: int):
-        # ... (код без изменений) ...
         if not source_ids: return
+
         format_strings = ','.join(['%s'] * len(source_ids))
         sql = f"UPDATE evm_contract_source SET processing_status = %s WHERE id IN ({format_strings})"
+        
+        params = (status, *source_ids)
+        
         async with conn.cursor() as cursor:
-            await cursor.execute(sql, (status, *source_ids))
+            await cursor.execute(sql, params)
 
     async def save_slither_report(self, conn: aiomysql.Connection, 
                                   source_id: int, 
                                   security_status: int, 
                                   report_json: str):
-        # ... (код без изменений, сохраняет отчет Slither в evm_contract_source) ...
         sql = """
             UPDATE evm_contract_source 
             SET security_analysis_status = %s, 
@@ -60,7 +60,6 @@ class EvmContractSourceScannerRepository(BaseRepository):
             raise
 
     def _parse_llm_time_field(self, value: Any) -> tuple:
-        # ... (код без изменений) ...
         if value is None: return (None, None)
         if isinstance(value, (int, float)): return (None, int(value))
         if isinstance(value, (dict, list)):
@@ -73,11 +72,10 @@ class EvmContractSourceScannerRepository(BaseRepository):
                 except json.JSONDecodeError: return (None, None)
         return (None, None)
 
-    # --- ИЗМЕНЕНО: Убран 'slither_report_str' ---
     async def save_airdrop_contract(self, conn: aiomysql.Connection, 
                                     source_data: Dict[str, Any], 
                                     llm_result: Dict[str, Any],
-                                    token_metadata: Optional[Dict[str, Any]]): # <--- Аргумент Slither удален
+                                    token_metadata: Optional[Dict[str, Any]]):
         """
         Атомарно сохраняет финальный результат в 'evm_airdrop_eligibility_contract'
         и помечает 'evm_contract_source' как завершенный.
@@ -98,13 +96,9 @@ class EvmContractSourceScannerRepository(BaseRepository):
         token_ticker = llm_result.get('token_ticker')
         token_decimals = llm_result.get('token_decimals')
 
-        token_analysis_status = 0 
-        active_status = 1 
-        
-        # --- ИЗМЕНЕНО: Сборка token_security_report (БЕЗ Slither) ---
+        token_analysis_status = 0
+        active_status = 1
         security_reports_list = []
-        
-        # 1. Отчет Slither здесь больше не добавляется.
         
         # 2. Добавляем отчет о метаданных токена
         if token_metadata:
@@ -123,7 +117,7 @@ class EvmContractSourceScannerRepository(BaseRepository):
                 "verified_contract": token_metadata.get('verified_contract', False), 
                 "provider": provider_name
             }
-            security_reports_list.append(metadata_report) # Добавляем отчет в массив
+            security_reports_list.append(metadata_report)
 
             if metadata_report["possible_spam"] is True:
                 active_status = 0 
@@ -132,15 +126,11 @@ class EvmContractSourceScannerRepository(BaseRepository):
         
         # Конвертируем массив (который содержит 0 или 1 элемент) в JSON
         token_security_report_json = json.dumps(security_reports_list)
-        # --- Конец изменений ---
 
         if active_status == 1 and end_ts and end_ts < int(time.time()):
-            active_status = 0 
+            active_status = 0
 
-        start_ts_sql = f"FROM_UNIXTIME({start_ts})" if start_ts else "NULL"
-        end_ts_sql = f"FROM_UNIXTIME({end_ts})" if end_ts else "NULL"
-
-        # 2. Вставляем в evm_airdrop_eligibility_contract
+        # Вставляем в evm_airdrop_eligibility_contract
         sql_insert = f"""
             INSERT INTO evm_airdrop_eligibility_contract
             (evm_network_chain_id, evm_contract_source_id, contract_address, 
@@ -150,12 +140,14 @@ class EvmContractSourceScannerRepository(BaseRepository):
              token_address, token_ticker, token_decimals, 
              token_analysis_status, token_security_report, 
              active_status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, {start_ts_sql}, {end_ts_sql}, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         params = (
             chain_id, source_id, contract_address,
             eligibility_abi, get_token_abi, 
             start_abi, end_abi,
+            start_ts,
+            end_ts,
             contract_name,
             token_address, 
             token_ticker, 

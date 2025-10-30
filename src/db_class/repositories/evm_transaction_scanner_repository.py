@@ -36,19 +36,20 @@ class EvmTransactionScannerRepository(BaseRepository):
         """
         if not tx_ids:
             return
-            
+
         format_strings = ','.join(['%s'] * len(tx_ids))
         sql = f"UPDATE evm_block_create_contract_transaction SET processing_status = %s WHERE id IN ({format_strings})"
         
+        params = (status, *tx_ids)
+        
         async with conn.cursor() as cursor:
-            await cursor.execute(sql, (status, *tx_ids))
+            await cursor.execute(sql, params)
 
-    # --- ИЗМЕНЕНО: Добавлен 'contract_name' в аргументы ---
     async def save_contract_and_source(self, conn: aiomysql.Connection, 
                                        tx_id: int, 
                                        chain_id: int, 
                                        contract_address: str, 
-                                       contract_name: str | None, # <--- ДОБАВЛЕНО
+                                       contract_name: str | None,
                                        source_code: str, 
                                        abi: str):
         """
@@ -71,14 +72,13 @@ class EvmTransactionScannerRepository(BaseRepository):
             # 2. Получаем ID
             new_contract_id = cursor.lastrowid
             
-            # 3. Вставляем исходный код (ИЗМЕНЕНО)
+            # 3. Вставляем исходный код
             source_sql = """
                 INSERT INTO evm_contract_source 
                     (evm_contract_id, evm_network_chain_id, contract_address, contract_name, source_code, abi) 
                 VALUES (%s, %s, %s, %s, %s, %s)
-            """ # <--- Добавлены 'contract_name' и '%s'
+            """
             
-            # <--- 'contract_name' добавлен в кортеж параметров
             await cursor.execute(source_sql, (new_contract_id, chain_id, contract_address, contract_name, source_code, abi))
             
             # 4. Обновляем статус транзакции
