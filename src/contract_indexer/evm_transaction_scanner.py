@@ -10,7 +10,6 @@ from ..providers.api_client_interface import AbstractAPIClient
 logger = logging.getLogger(__name__)
 
 class EvmTransactionScanner:
-    # ... (__init__ и run без изменений) ...
     def __init__(self, 
                  repository: EvmTransactionScannerRepository, 
                  api_client: AbstractAPIClient,
@@ -74,7 +73,6 @@ class EvmTransactionScanner:
             source_code_to_save = "" # Инициализация
             cleaned_code = source_code_original.strip()
 
-            # --- ИЗМЕНЕНИЕ: Строгая логика сохранения ---
             is_json_format = False
             # 1. Проверяем на формат Etherscan {{...}}
             if cleaned_code.startswith('{{') and cleaned_code.endswith('}}'):

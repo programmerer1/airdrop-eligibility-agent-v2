@@ -1,4 +1,3 @@
-# src/contract_indexer/evm_contract_source_scanner.py
 import asyncio
 import logging
 import json
@@ -37,7 +36,6 @@ class EvmContractSourceScanner:
         logger.info("EvmContractSourceScanner initialized.")
         
     async def run(self):
-        # ... (код без изменений) ...
         logger.info("EvmContractSourceScanner run started...")
         async with (await self._repository.pool).acquire() as conn:
             await conn.begin()

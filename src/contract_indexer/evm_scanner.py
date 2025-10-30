@@ -1,4 +1,3 @@
-# src/contract_indexer/evm_scanner.py
 import asyncio
 import logging
 from typing import Dict, Any, List, Tuple
@@ -32,7 +31,6 @@ class EvmScanner:
         logger.info("EvmScanner initialized.")
 
     async def run(self):
-        # ... (код без изменений) ...
         logger.info("EvmScanner run started...")
         try:
             networks = await self._repository.get_active_networks_to_scan()
@@ -45,8 +43,6 @@ class EvmScanner:
         except Exception as e:
             logger.error(f"EvmScanner: Unhandled exception in run(): {e}", exc_info=True)
 
-
-    # --- ИЗМЕНЕНО: Логика транзакций полностью перестроена ---
     async def process_network(self, network: Dict[str, Any]):
         """
         Обрабатывает одну сеть: находит и сохраняет новые блоки.
@@ -129,8 +125,6 @@ class EvmScanner:
                     await conn.rollback()
                     logger.error(f"EvmScanner [Chain {chain_id}]: CRITICAL: FAILED TO UNLOCK network. Error: {e}")
 
-    
-    # --- НОВЫЙ МЕТОД: Обработка одной партии в транзакции ---
     async def _process_batch(self, chain_id: int, start_block: int, end_block: int):
         """
         Обрабатывает ОДНУ партию блоков (от start_block до end_block)
