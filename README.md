@@ -107,6 +107,80 @@ Before launching the containers, you can add EVM networks for the scanners. To d
 
 You can also add a new network to the evm_network table at any time.
 
+## Configuration (.env)
+
+The `.env` file manages all aspects of the application, including API keys, database connections, and scanner behavior.
+
+### General Application Settings
+
+* **`APP_ENV`**: Controls the logging mode. `prod` enables only `WARNING` and `ERROR`, any other value (e.g., `dev`) enables `INFO`.
+* **`APP_PORT`**: The port on which the agent's FastAPI server will run.
+* **`APP_HOST`**: The host on which the agent's FastAPI server will run (e.g., `0.0.0.0` for Docker).
+
+### MySQL Settings
+
+* **`MYSQL_HOST`**: The database host (e.g., `mysql` for Docker Compose).
+* **`MYSQL_DATABASE`**: The database name (same as in mysql_env).
+* **`MYSQL_USER`**: The database username (same as in mysql_env).
+* **`MYSQL_PASSWORD`**: The database user's password (same as in mysql_env).
+* **`MYSQL_PORT`**: The database port (usually `3306`).
+
+### Agent API Settings (LLM). OpenAI-compatible
+
+These settings are used **only** by `AgentServer` to respond to the user.
+
+* **`MODEL_API_URL`**: The API URL for the response-generating model.
+* **`MODEL_NAME`**: The name of the response-generating model.
+* **`MODEL_API_KEY`**: The API key for the response model.
+* **`MODEL_API_TIMEOUT`**: Timeout for the response model API (in seconds).
+* **`MODEL_API_PROXY_URL`**: (Optional) Proxy server URL (`http://[login]:[pass]@[address]:[port]`).
+
+* **`EXTRACTOR_MODEL_API_URL`**: The API URL for the model that extracts the address from the user's query.
+* **`EXTRACTOR_MODEL_NAME`**: The name of the extractor model.
+* **`EXTRACTOR_MODEL_API_KEY`**: The API key for the extractor model.
+* **`EXTRACTOR_MODEL_API_TIMEOUT`**: Timeout for the extractor API (in seconds).
+* **`EXTRACTOR_MODEL_API_PROXY_URL`**: (Optional) Proxy server URL.
+
+### Scanner Settings (General)
+
+* **`EVM_API_REQUEST_DELAY`**: **Important!** Global delay (in seconds) between all requests to the EVM API (Etherscan) to comply with rate limits.
+* **`SCANNERS_API_PARALLEL_MODE`**: `False` (default) = all Etherscan scanners share one `Lock` (requests are sequential). `True` = each Etherscan scanner gets its own `Lock` (allows parallel requests, e.g., 4 requests/sec if `EVM_API_REQUEST_DELAY=1.0`). **But keep in mind that there are separate API requests within the scanners. For example, requests for token data, contract source code, interaction with the LLM model, etc.**
+
+### Scanner API Settings. (Currently supports only Etherscan API V2)
+
+* **`EVM_API_URL`**: Global default Etherscan API V2 URL.
+* **`EVM_API_KEY`**: Global default Etherscan API key.
+* **`EVM_API_TIMEOUT`**: Global default Etherscan API timeout.
+* **`EVM_API_PROXY_URL`**: (Optional) Global default proxy.
+
+* **`EVM_SCANNER_API_URL` / `_KEY` / `_TIMEOUT` / `_PROXY_URL`**: Individual settings for `EvmScanner`. If not specified, global `EVM_API_...` settings are used.
+* **`EVM_BLOCK_SCANNER_API_URL` / `_KEY` / `_TIMEOUT` / `_PROXY_URL`**: Individual settings for `EvmBlockScanner`.
+* **`EVM_TRANSACTION_SCANNER_API_URL` / `_KEY` / `_TIMEOUT` / `_PROXY_URL`**: Individual settings for `EvmTransactionScanner`.
+* **`EVM_CONTRACT_DATE_SCANNER_API_URL` / `_KEY` / `_TIMEOUT` / `_PROXY_URL`**: Individual settings for `EvmContractDateScanner`.
+* **`EVM_GET_TOKEN_HASH_API_URL` / `_KEY` / `_TIMEOUT` / `_PROXY_URL`**: Individual settings for `eth_call` (used by `EvmContractSourceScanner`).
+
+### Scanner API Settings. OpenAI-compatible
+
+* **`CONTRACT_ANALYZER_MODEL_...`**: Settings for the LLM API, which is used by **`EvmContractSourceScanner`** to analyze source code for Airdrop logic.
+* **`EVM_GET_TOKEN_METADATA_...`**: Settings for the **Moralis** API, which is used by **`EvmContractSourceScanner`** to retrieve token metadata (`symbol`, `decimals`, `possible_spam`).
+
+### Scanner Logic Settings
+
+* **`..._RUN_INTERVAL`**: (5 variables) How often (in seconds) each of the five scanners runs.
+* **`EVM_SCANNER_CATCH_UP_THRESHOLD`**: Threshold (in blocks) for `EvmScanner` to switch between "Catch-up" and "Follow" modes.
+* **`EVM_SCANNER_CATCH_UP_BATCH_SIZE`**: Batch size (in blocks) for `EvmScanner` in "Catch-up" mode.
+* **`EVM_SCANNER_FOLLOW_BATCH_SIZE`**: Batch size (in blocks) for `EvmScanner` in "Follow" mode.
+* **`..._BATCH_SIZE`**: (4 variables) Batch sizes (LIMIT N) for `EvmBlockScanner`, `EvmTransactionScanner`, `EvmContractSourceScanner`, and `EvmContractDateScanner` (how many records to fetch from the DB in one cycle).
+* **`AIRDROP_ABI_KEYWORDS`**: List of keywords (comma-separated) for **`EvmContractSourceScanner`** (Stage 1, ABI Filter).
+
+### CORS Settings (for Agent)
+
+* **`CORS_ORIGINS`**: List of URLs (comma-separated) allowed to access the agent's API.
+* **`CORS_METHODS`**: Allowed HTTP methods.
+* **`CORS_HEADERS`**: Allowed HTTP headers.
+* **`CORS_CREDENTIALS`**: Allow `credentials` (True/False).
+
+
 ## Installation
 Clone the repository (**You must configure the variables in the env files.**)
 ```bash
