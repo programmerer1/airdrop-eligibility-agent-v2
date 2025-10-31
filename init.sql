@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS evm_network (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     discovered_at TIMESTAMP DEFAULT NULL COMMENT 'Date of last discovery/scan (updated only by scanner)',
     last_discovered_block_number BIGINT UNSIGNED DEFAULT NULL COMMENT 'The last block number that has been discovered. From this block + 1, the next query will begin.',
-    active_status TINYINT NOT NULL DEFAULT 0 COMMENT '0 = inactive, 1 = active',
+    active_status TINYINT NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active',
     processing_status TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = not started, 1 = processing',
     finality_depth SMALLINT UNSIGNED NOT NULL DEFAULT 12 COMMENT 'Finality depth. Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won\'t "disappear" due to block reversal.'
 ) ENGINE=InnoDB;
