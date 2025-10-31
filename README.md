@@ -124,7 +124,7 @@ Before launching the containers, you can add EVM networks for the scanners. To d
 
 - discovered_at - Time of the scanner's last interaction with this record (**For scanners only**)
 
-- last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**)
+- last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**). **However, you can specify a block number when adding a new network to the database to indicate to the scanner which block to start scanning from in that network.**
 
 - active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks
 
