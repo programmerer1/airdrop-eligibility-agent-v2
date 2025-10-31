@@ -131,13 +131,13 @@ class EvmContractDateScanner:
 
         except Exception as e:
             # Откат при ЛЮБОЙ ошибке (включая ошибку `readexactly` при `conn.begin`)
-            if conn and conn.is_connected():
+            if conn and not conn.closed:
                 try: await conn.rollback()
                 except Exception as rb_e: logger.error(f"Failed to rollback transaction: {rb_e}")
             logger.error(f"Failed to process eth_getCode check batch. Transaction rolled back. Error: {e}", exc_info=True)
         finally:
             # Гарантированно закрываем соединение, если оно еще открыто
-            if conn and conn.is_connected():
+            if conn and not conn.closed:
                 conn.close()
 
     async def _process_claim_timestamp_check(self, 
@@ -234,10 +234,10 @@ class EvmContractDateScanner:
                      raise
 
         except Exception as e:
-            if conn and conn.is_connected():
+            if conn and not conn.closed:
                 try: await conn.rollback()
                 except Exception as rb_e: logger.error(f"Failed to rollback transaction: {rb_e}")
             logger.error(f"Failed to process {check_type} check batch. Transaction rolled back. Error: {e}", exc_info=True)
         finally:
-            if conn and conn.is_connected():
+            if conn and not conn.closed:
                 conn.close()
