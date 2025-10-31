@@ -105,6 +105,8 @@ If you want to add a network before launching:
 
 Before launching the containers, you can add EVM networks for the scanners. To do this, you need to add the network in the `init.sql` file using the SQL INSERT command into the `evm_network` table. By default, the ETH Mainnet network is already added to the file.
 
+You can also add a new network to the evm_network table at any time.
+
 ## Installation
 Clone the repository (**You must configure the variables in the env files.**)
 ```bash
