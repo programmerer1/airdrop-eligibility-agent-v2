@@ -131,3 +131,22 @@ Before launching the containers, you can add EVM networks for the scanners. To d
 - processing_status - 0 - Available for processing, 1 - The scanner has locked and is working with this network (**For scanners only**)
 
 - finality_depth - Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest  network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won't "disappear" due to block reversal.
+
+Example POST request to localhost:8000/assist:
+```json
+{
+    "session": 
+    {
+        "processor_id":"sentient-chat-client",
+        "activity_id":"01K6BEMNWZFMP3RMGJTFZBND2N",
+        "request_id": "01K6BEPKY12FMR1S19Y3SE01C6",
+        "interactions":[]
+    }, 
+    "query": 
+    {
+        "id": "01K6BEMZ2QZQ58ADNDCKBPKD51", 
+        "prompt": "Check my wallet 0x4abaf7b00248bcf38984477be31fa2aeca6ba1a8",
+        "context": ""
+    }
+}
+```
