@@ -71,6 +71,7 @@ class SlitherAnalyzer:
             logger.error(f"Failed to parse source_code JSON: {e}. Content: {source_code_json_str[:200]}")
             raise ValueError("Invalid source_code JSON structure") from e
 
+        
         # 1. Получаем абсолютный, канонический путь к временной папке
         safe_temp_dir = os.path.realpath(temp_dir)
 
