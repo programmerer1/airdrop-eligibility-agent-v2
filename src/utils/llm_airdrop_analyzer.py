@@ -38,9 +38,6 @@ class LLMAirdropAnalyzer:
                 all_code.append("\n\n")
             return "".join(all_code)
         
-        if 'source_raw' in data:
-            return data['source_raw']
-
         logger.warning("Unknown source_code structure for LLM. Sending raw.")
         return source_code_json
 
