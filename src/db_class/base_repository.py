@@ -6,7 +6,7 @@ class BaseRepository:
     """
     Базовый класс репозитория.
     Предоставляет общий доступ к пулу соединений MySQLConnector 
-    для всех дочерних репозиториев (DRY).
+    для всех дочерних репозиториев.
     """
     def __init__(self, connector: MySQLConnector):
         """

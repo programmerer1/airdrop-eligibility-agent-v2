@@ -71,8 +71,6 @@ class SlitherAnalyzer:
             logger.error(f"Failed to parse source_code JSON: {e}. Content: {source_code_json_str[:200]}")
             raise ValueError("Invalid source_code JSON structure") from e
 
-        # --- ИЗМЕНЕНИЕ: Безопасная работа с путями ---
-        
         # 1. Получаем абсолютный, канонический путь к временной папке
         safe_temp_dir = os.path.realpath(temp_dir)
 
@@ -111,7 +109,6 @@ class SlitherAnalyzer:
                 with open(full_path, 'w', encoding='utf-8') as f:
                     f.write(content_obj['content'])
             return safe_temp_dir
-        # --- Конец изменений ---
 
         else:
             logger.error(f"Unknown source_code JSON structure: Expected 'source' or 'sources' key. Got: {str(source_data)[:200]}")

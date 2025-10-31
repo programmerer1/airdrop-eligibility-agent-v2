@@ -153,7 +153,7 @@ class EvmContractSourceScannerRepository(BaseRepository):
             token_ticker, 
             token_decimals, 
             token_analysis_status, 
-            token_security_report_json, # <--- Здесь теперь массив только с отчетом Moralis (или пустой)
+            token_security_report_json,
             active_status
         )
 

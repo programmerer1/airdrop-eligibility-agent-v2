@@ -80,7 +80,6 @@ class EtherscanAPIClient(AbstractAPIClient):
 
 
     async def get_latest_block_number(self, chain_id: int) -> int:
-        # ... (код без изменений) ...
         params = {
             "chainid": chain_id,
             "module": "proxy",
@@ -90,7 +89,6 @@ class EtherscanAPIClient(AbstractAPIClient):
         return int(data['result'], 16)
 
     async def get_block_by_number(self, chain_id: int, block_number: int) -> Optional[Dict[str, Any]]:
-        # ... (код без изменений) ...
         params = {
             "chainid": chain_id,
             "module": "proxy",
@@ -102,7 +100,6 @@ class EtherscanAPIClient(AbstractAPIClient):
         return data.get('result')
     
     async def get_transaction_receipt(self, chain_id: int, tx_hash: str) -> Optional[Dict[str, Any]]:
-        # ... (код без изменений) ...
         params = {
             "chainid": chain_id,
             "module": "proxy",
@@ -113,7 +110,6 @@ class EtherscanAPIClient(AbstractAPIClient):
         return data.get('result')
 
     async def get_contract_source(self, chain_id: int, contract_address: str) -> Optional[Dict[str, Any]]:
-        # ... (код без изменений) ...
         params = {
             "chainid": chain_id,
             "module": "contract",
@@ -129,7 +125,6 @@ class EtherscanAPIClient(AbstractAPIClient):
         logger.warning(f"Could not get source code for {contract_address} on chain {chain_id}. Result: {result_list}")
         return None
         
-    # --- НОВЫЙ МЕТОД: Реализация eth_call ---
     async def eth_call(self, chain_id: int, to_address: str, data: str) -> Optional[str]:
         """
         Выполняет eth_call.

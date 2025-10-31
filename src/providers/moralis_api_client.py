@@ -51,7 +51,6 @@ class MoralisAPIClient(AbstractAPIClient):
     async def _request(self, method: str, endpoint: str, 
                        params: Optional[Dict[str, Any]] = None, 
                        json_data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        # ... (код без изменений) ...
         url = f"{self._base_url}{endpoint}"
         async with self._lock:
             now = asyncio.get_event_loop().time()
@@ -109,25 +108,21 @@ class MoralisAPIClient(AbstractAPIClient):
 
 
     async def get_contract_source(self, chain_id: int, contract_address: str) -> Optional[Dict[str, Any]]:
-        # ... (код без изменений, выбрасывает NotImplementedError) ...
         message = "MoralisAPIClient does not support fetching contract source code."
         logger.error(message)
         raise NotImplementedError(message)
 
 
     async def eth_call(self, chain_id: int, to_address: str, data: str) -> Optional[str]:
-        # ... (код без изменений, выбрасывает NotImplementedError) ...
         message = "MoralisAPIClient does not support direct eth_call with raw data."
         logger.error(message)
         raise NotImplementedError(message)
     
     async def eth_getCode(self, chain_id: int, address: str) -> Optional[str]:
-        # ... (код без изменений, выбрасывает NotImplementedError) ...
         message = "MoralisAPIClient does not support direct eth_call with raw data."
         logger.error(message)
         raise NotImplementedError(message)
 
-    # --- НОВЫЙ МЕТОД: Получение метаданных токена ---
     async def get_token_metadata(self, chain_id: int, token_address: str) -> Optional[Dict[str, Any]]:
         """
         Получает метаданные ERC20 токена, включая symbol, decimals и security info.

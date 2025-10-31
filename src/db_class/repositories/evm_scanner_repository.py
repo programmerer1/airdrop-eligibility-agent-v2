@@ -1,4 +1,3 @@
-# src/db_class/repositories/evm_scanner_repository.py
 import logging
 from typing import List, Dict, Any, Tuple
 import aiomysql
@@ -12,7 +11,6 @@ class EvmScannerRepository(BaseRepository):
     """
 
     async def get_active_networks_to_scan(self) -> List[Dict[str, Any]]:
-        # ... (код без изменений) ...
         sql = """
             SELECT chain_id, last_discovered_block_number, finality_depth 
             FROM evm_network 
@@ -24,12 +22,10 @@ class EvmScannerRepository(BaseRepository):
                 return await cursor.fetchall()
 
     async def start_network_processing(self, conn: aiomysql.Connection, chain_id: int):
-        # ... (код без изменений) ...
         sql = "UPDATE evm_network SET processing_status = 1 WHERE chain_id = %s"
         async with conn.cursor() as cursor:
             await cursor.execute(sql, (chain_id,))
 
-    # --- ИЗМЕНЕНО: Этот метод теперь только сбрасывает статус ---
     async def finish_network_processing(self, conn: aiomysql.Connection, chain_id: int):
         """
         Помечает сеть как "обработка завершена" (processing_status = 0).
@@ -44,7 +40,6 @@ class EvmScannerRepository(BaseRepository):
         async with conn.cursor() as cursor:
             await cursor.execute(sql, (chain_id,))
 
-    # --- НОВЫЙ МЕТОД: Обновление блока в рамках транзакции ---
     async def update_network_last_block(self, conn: aiomysql.Connection, chain_id: int, last_block_number: int):
         """
         Обновляет номер последнего обработанного блока и время.
@@ -61,7 +56,6 @@ class EvmScannerRepository(BaseRepository):
     # ---
 
     async def batch_insert_blocks(self, conn: aiomysql.Connection, blocks_data: List[Tuple[int, int, str]]):
-        # ... (код без изменений) ...
         if not blocks_data:
             return
             

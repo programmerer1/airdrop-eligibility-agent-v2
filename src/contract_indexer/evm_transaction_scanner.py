@@ -107,7 +107,6 @@ class EvmTransactionScanner:
             if not is_json_format:
                  logger.debug(f"Contract {contract_address}: Saved as single-file source code wrapped in JSON.")
                  source_code_to_save = json.dumps({"source": cleaned_code})
-            # --- Конец изменения ---
 
             await self._repository.save_contract_and_source(
                 conn, 

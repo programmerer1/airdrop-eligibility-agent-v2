@@ -1,10 +1,9 @@
-# src/utils/contract_utils.py
 import logging
 import json
 from typing import Dict, Any, Optional, Tuple
 from eth_utils import function_signature_to_4byte_selector, to_checksum_address
 from eth_abi import decode
-import codecs # <--- Добавлен импорт codecs
+import codecs
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +40,8 @@ def get_function_selector(func_abi: Dict[str, Any]) -> Optional[str]:
         signature = f"{func_name}({input_types})"
         logger.debug(f"Generated function signature: {signature}")
         
-        # --- ИСПРАВЛЕНО: Убран .encode() ---
         # function_signature_to_4byte_selector ожидает строку
         selector_bytes = function_signature_to_4byte_selector(signature)
-        # --- Конец исправления ---
         
         # Конвертируем байты селектора в hex-строку 0x...
         selector_hex = codecs.encode(selector_bytes, 'hex').decode('ascii')
@@ -84,7 +81,6 @@ def decode_address_from_eth_call(result: str) -> Optional[str]:
         logger.error(f"Failed to decode address from eth_call result {result}: {e}", exc_info=True)
         return None
 
-# --- НОВЫЙ МЕТОД ---
 def decode_timestamp_from_eth_call(result: str) -> Optional[int]:
     """
     Декодирует timestamp (uint256) из результата eth_call.
