@@ -15,6 +15,13 @@ The application is divided into two parts: Scanners and Agent.
 The agent is developed based on the Sentient Agent Framework
 https://github.com/sentient-agi/Sentient-Agent-Framework
 
+## 🚧 In Development
+
+A new feature is currently being developed — a **scanner** that analyzes the security of token smart contracts.
+
+Status: In progress  
+Goal: Add automatic detection of potentially suspicious contracts 
+
 ---
 ## Scanner Lifecycle
 
