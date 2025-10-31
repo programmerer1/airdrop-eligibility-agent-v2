@@ -99,6 +99,12 @@ The database is the "heart" of the pipeline. Each table (except `evm_network`) r
 * **`research_cache`**
     * **Purpose:** Caching table. Used by another part of the application (the agent), not the scanners.
 
+**The ETH network is added by default**
+
+If you want to add a network before launching:
+
+Before launching the containers, you can add EVM networks for the scanners. To do this, you need to add the network in the `init.sql` file using the SQL INSERT command into the `evm_network` table. By default, the ETH Mainnet network is already added to the file.
+
 ## Installation
 Clone the repository (**You must configure the variables in the env files.**)
 ```bash
@@ -112,7 +118,6 @@ cp .mysql_env.example .mysql_env
 mkdir db_data
 docker compose -f docker-compose.yml up -d
 ```
-Before launching the containers, you can add EVM networks for the scanners. To do this, you need to add the network in the init.sql file using the SQL INSERT command into the `evm_network` table. By default, the ETH Mainnet network is already added to the file.
 
 ## Description of the fields in the evm_network table:
 
