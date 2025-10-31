@@ -88,9 +88,6 @@ class EligibilityApi:
         except Exception as e:
              logger.error(f"[{name} @ Chain {chain_id}] API client error during eth_call: {e}")
              return {"status": "skipped", "contract": name}
-        except Exception as e: 
-             logger.error(f"[{name} @ Chain {chain_id}] Unexpected error during eth_call: {e}", exc_info=True)
-             return {"status": "skipped", "contract": name}
 
         # Парсинг ответа
         if not hex_result or hex_result == "0x":

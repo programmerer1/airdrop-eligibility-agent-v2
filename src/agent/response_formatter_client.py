@@ -1,6 +1,9 @@
 import json
 from src.agent.prompts.formatter import system_prompt, user_prompt_template
 from src.services import response_formatter_client_llm
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ResponseFormatter:
     async def format(self, result: dict, user_prompt: str) -> str:
@@ -29,4 +32,10 @@ class ResponseFormatter:
             ]
         }
 
-        return await response_formatter_client_llm.query(payload)
+        report_content = await response_formatter_client_llm.query(payload)
+
+        if not report_content:
+            logger.error("Response Formatter LLM did not return anything")
+            return "The request could not be processed."
+
+        return report_content
