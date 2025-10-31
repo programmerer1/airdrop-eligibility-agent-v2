@@ -19,10 +19,10 @@ https://github.com/sentient-agi/Sentient-Agent-Framework
 
 ## 🚧 In Development
 
-A new feature is currently being developed — a **scanner** that analyzes the security of token smart contracts.
+A new feature is currently being developed — a **scanner** that analyzes the security of **token** smart contracts.
 
 Status: In progress  
-Goal: Add automatic detection of suspicious token contracts 
+Goal: Add automatic detection of suspicious **token** contracts 
 
 ---
 ## Scanner Lifecycle
