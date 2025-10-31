@@ -15,11 +15,6 @@ logger = logging.getLogger(__name__)
 class EvmContractDateScanner:
     """
     Сканер дат Airdrop контрактов.
-    Выполняет 4 задачи последовательно:
-    1. Деактивирует истекшие контракты (по `claim_end_timestamp`).
-    2. Деактивирует уничтоженные контракты (по `eth_getCode`).
-    3. Запрашивает `claim_end_timestamp` по ABI.
-    4. Запрашивает `claim_start_timestamp` по ABI.
     """
     def __init__(self,
                  repository: EvmContractDateScannerRepository,
@@ -73,40 +68,27 @@ class EvmContractDateScanner:
         """
         logger.debug("Running check for destroyed contracts (eth_getCode)...")
         contracts_to_check: List[Dict[str, Any]] = []
-        conn = None 
         
         try:
-            # 1. Получаем соединение и начинаем транзакцию
-            conn = await (await self._repository.pool).acquire()
-            await conn.begin()
-            
-            # 2. Выбираем пачку
-            contracts_to_check = await self._repository.get_contracts_for_code_check(conn, self._batch_size)
+            # 1. Выбираем пачку (БЕЗ БЛОКИРОВКИ)
+            contracts_to_check = await self._repository.get_contracts_for_code_check(self._batch_size)
             if not contracts_to_check:
                 logger.debug("No contracts found for eth_getCode check.")
-                await conn.commit()
-                conn.close() # Закрываем соединение
                 return
 
             logger.info(f"Checking eth_getCode for {len(contracts_to_check)} contracts...")
 
-            # 3. Готовим API-задачи
+            # 2. ПАРАЛЛЕЛЬНО: Выполняем eth_getCode
             tasks = {
                 c['id']: self._api.eth_getCode(c['evm_network_chain_id'], c['contract_address'])
                 for c in contracts_to_check
             }
-            
-            # 4. Временно отпускаем соединение (но не коммитим), чтобы выполнить API-запросы
-            conn.close() 
-            conn = None
-
-            # 5. ПАРАЛЛЕЛЬНО: Выполняем eth_getCode (БЕЗ активного 'conn')
             results = await asyncio.gather(*tasks.values(), return_exceptions=True)
             results_map = dict(zip(tasks.keys(), results))
 
             dead_contract_ids = []
 
-            # 6. ПОСЛЕДОВАТЕЛЬНО: Разбираем результаты
+            # 3. ПОСЛЕДОВАТЕЛЬНО: Разбираем результаты
             for contract_id, code_result in results_map.items():
                 if isinstance(code_result, Exception):
                     logger.error(f"API Error checking eth_getCode for id={contract_id}: {code_result}")
@@ -116,7 +98,7 @@ class EvmContractDateScanner:
                     logger.info(f"Contract id={contract_id} is destroyed (eth_getCode result: {code_result}). Deactivating.")
                     dead_contract_ids.append(contract_id)
             
-            # 7. Снова берем соединение и коммитим ИЗМЕНЕНИЯ В БД
+            # 4. Массово деактивируем "мертвые" контракты (ОДНА ТРАНЗАКЦИЯ)
             if dead_contract_ids:
                 logger.info(f"Deactivating {len(dead_contract_ids)} destroyed contracts...")
                 async with (await self._repository.pool).acquire() as conn_commit:
@@ -127,18 +109,11 @@ class EvmContractDateScanner:
                     except Exception as commit_e:
                         await conn_commit.rollback()
                         logger.error(f"Failed to commit deactivated contracts: {commit_e}")
-                        raise
-
+                        # Не выбрасываем ошибку, чтобы не остановить весь сканер
+            
         except Exception as e:
-            # Откат при ЛЮБОЙ ошибке (включая ошибку `readexactly` при `conn.begin`)
-            if conn and not conn.closed:
-                try: await conn.rollback()
-                except Exception as rb_e: logger.error(f"Failed to rollback transaction: {rb_e}")
-            logger.error(f"Failed to process eth_getCode check batch. Transaction rolled back. Error: {e}", exc_info=True)
-        finally:
-            # Гарантированно закрываем соединение, если оно еще открыто
-            if conn and not conn.closed:
-                conn.close()
+            logger.error(f"Failed to process eth_getCode check batch: {e}", exc_info=True)
+
 
     async def _process_claim_timestamp_check(self, 
                                              check_type: str, 
@@ -151,28 +126,20 @@ class EvmContractDateScanner:
         """
         logger.debug(f"Running check for: {check_type}")
         contracts_to_check: List[Dict[str, Any]] = []
-        conn = None
         
         try:
-            # 1. Получаем соединение и начинаем транзакцию
-            conn = await (await self._repository.pool).acquire()
-            await conn.begin()
-            
-            # 2. Выбрать пачку
-            contracts_to_check = await getter_method(conn, self._batch_size)
+            # 1. Выбрать пачку (БЕЗ БЛОКИРОВКИ)
+            contracts_to_check = await getter_method(self._batch_size)
             if not contracts_to_check:
                 logger.debug(f"No contracts found for {check_type} check.")
-                await conn.commit()
-                conn.close()
                 return
 
             logger.info(f"Checking {check_type} for {len(contracts_to_check)} contracts...")
 
-            # 3. Подготовить API-задачи
+            # 2. Подготовить API-задачи
             api_tasks = []
             contracts_map = []
             
-            # (Этот цикл for безопасен, он делает DB-запросы последовательно)
             for contract in contracts_to_check:
                 abi_json = contract.get(abi_key)
                 try:
@@ -186,18 +153,17 @@ class EvmContractDateScanner:
                         ))
                         contracts_map.append(contract)
                     else:
-                        await invalidate_method(conn, contract['id'])
+                        # Если ABI невалидный, мы запомним ID, чтобы обнулить его в БД
+                        contracts_map.append(contract) # Добавляем, чтобы сопоставить
+                        api_tasks.append(None) # Добавляем None как "заглушку"
                 except (json.JSONDecodeError, TypeError):
-                         await invalidate_method(conn, contract['id'])
-            
-            # 4. Временно отпускаем соединение
-            conn.close()
-            conn = None
-            
-            # 5. Выполняем API-задачи (БЕЗ активного 'conn')
+                     contracts_map.append(contract)
+                     api_tasks.append(None) # ABI - невалидный JSON
+
+            # 3. Выполняем API-задачи
             api_results = await asyncio.gather(*api_tasks, return_exceptions=True)
 
-            # 6. Снова берем соединение и коммитим изменения
+            # 4. Берем соединение и коммитим изменения
             async with (await self._repository.pool).acquire() as conn_commit:
                  await conn_commit.begin()
                  try:
@@ -205,9 +171,14 @@ class EvmContractDateScanner:
                     for contract, result in zip(contracts_map, api_results):
                         contract_id = contract['id']
                         
+                        if result is None: # Это наш маркер невалидного ABI
+                            logger.warning(f"Invalid ABI for {check_type} (id={contract_id}). Invalidating ABI.")
+                            await invalidate_method(conn_commit, contract_id)
+                            continue
+                        
                         if isinstance(result, Exception):
                             logger.error(f"API Error checking {check_type} for id={contract_id}: {result}")
-                            continue 
+                            continue # Пропускаем, попробуем в след. раз
                         
                         timestamp = decode_timestamp_from_eth_call(result)
                         
@@ -215,6 +186,7 @@ class EvmContractDateScanner:
                             logger.warning(f"Invalid timestamp format returned for {check_type} (id={contract_id}). Result: {result}. Invalidating ABI.")
                             await invalidate_method(conn_commit, contract_id)
                         else:
+                            # Успех
                             if check_type == "claim_start":
                                 logger.info(f"Found valid claim_start_timestamp {timestamp} for id={contract_id}.")
                                 await update_method(conn_commit, contract_id, timestamp)
@@ -234,10 +206,4 @@ class EvmContractDateScanner:
                      raise
 
         except Exception as e:
-            if conn and not conn.closed:
-                try: await conn.rollback()
-                except Exception as rb_e: logger.error(f"Failed to rollback transaction: {rb_e}")
-            logger.error(f"Failed to process {check_type} check batch. Transaction rolled back. Error: {e}", exc_info=True)
-        finally:
-            if conn and not conn.closed:
-                conn.close()
+            logger.error(f"Failed to process {check_type} check batch: {e}", exc_info=True)

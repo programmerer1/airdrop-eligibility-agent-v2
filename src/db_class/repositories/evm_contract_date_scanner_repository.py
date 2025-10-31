@@ -22,6 +22,7 @@ class EvmContractDateScannerRepository(BaseRepository):
               AND claim_end_timestamp <= CURRENT_TIMESTAMP;
         """
         affected_rows = 0
+
         async with (await self.pool).acquire() as conn:
             await conn.begin() 
             try:
@@ -35,10 +36,10 @@ class EvmContractDateScannerRepository(BaseRepository):
                 raise 
         return affected_rows
 
-    async def get_contracts_for_code_check(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_code_check(self, batch_size: int) -> List[Dict[str, Any]]:
         """
-        ШАГ 2: Выбирает ВСЕ активные контракты, где claim_end_timestamp IS NULL,
-        для проверки eth_getCode.
+        ШАГ 2: Выбирает ВСЕ активные контракты, где claim_end_timestamp IS NULL.
+        (Простой SELECT, без блокировок)
         """
         sql = """
             SELECT id, evm_network_chain_id, contract_address
@@ -46,13 +47,13 @@ class EvmContractDateScannerRepository(BaseRepository):
             WHERE active_status = 1
               AND claim_end_timestamp IS NULL
             LIMIT %s
-            FOR UPDATE SKIP LOCKED
         """
-        async with conn.cursor(aiomysql.DictCursor) as cursor:
-            await cursor.execute(sql, (batch_size,))
-            return await cursor.fetchall()
+        async with (await self.pool).acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cursor:
+                await cursor.execute(sql, (batch_size,))
+                return await cursor.fetchall()
             
-    async def get_contracts_for_claim_start_check(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_claim_start_check(self, batch_size: int) -> List[Dict[str, Any]]:
         """
         ШАГ 4: Выбирает контракты, где нужно проверить claim_start_timestamp.
         """
@@ -63,16 +64,15 @@ class EvmContractDateScannerRepository(BaseRepository):
               AND claim_start_timestamp IS NULL
               AND claim_start_getter_abi IS NOT NULL
             LIMIT %s
-            FOR UPDATE SKIP LOCKED
         """
-        async with conn.cursor(aiomysql.DictCursor) as cursor:
-            await cursor.execute(sql, (batch_size,))
-            return await cursor.fetchall()
+        async with (await self.pool).acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cursor:
+                await cursor.execute(sql, (batch_size,))
+                return await cursor.fetchall()
 
-    async def get_contracts_for_claim_end_check(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_claim_end_check(self, batch_size: int) -> List[Dict[str, Any]]:
         """
-        ШАГ 3: Выбирает (уже проверенные на eth_getCode) контракты, 
-        где нужно получить claim_end_timestamp.
+        ШАГ 3: Выбирает (уже проверенные на eth_getCode) контракты.
         """
         sql = """
             SELECT id, evm_network_chain_id, contract_address, claim_end_getter_abi
@@ -81,40 +81,31 @@ class EvmContractDateScannerRepository(BaseRepository):
               AND claim_end_timestamp IS NULL
               AND claim_end_getter_abi IS NOT NULL
             LIMIT %s
-            FOR UPDATE SKIP LOCKED
         """
-        async with conn.cursor(aiomysql.DictCursor) as cursor:
-            await cursor.execute(sql, (batch_size,))
-            return await cursor.fetchall()
+        async with (await self.pool).acquire() as conn:
+            async with conn.cursor(aiomysql.DictCursor) as cursor:
+                await cursor.execute(sql, (batch_size,))
+                return await cursor.fetchall()
 
     async def deactivate_contract_batch(self, conn: aiomysql.Connection, contract_ids: List[int]):
-        if not contract_ids:
-            return
-
+        if not contract_ids: return
         format_strings = ','.join(['%s']*len(contract_ids))
         sql = f"UPDATE evm_airdrop_eligibility_contract SET active_status = 0 WHERE id IN ({format_strings})"
-        
         params = (*contract_ids,)
-        
-        async with conn.cursor() as cursor:
-            await cursor.execute(sql, params)
+        async with conn.cursor() as cursor: await cursor.execute(sql, params)
             
     async def update_claim_start_timestamp(self, conn: aiomysql.Connection, contract_id: int, timestamp: int):
         sql = "UPDATE evm_airdrop_eligibility_contract SET claim_start_timestamp = FROM_UNIXTIME(%s) WHERE id = %s"
-        async with conn.cursor() as cursor:
-            await cursor.execute(sql, (timestamp, contract_id))
+        async with conn.cursor() as cursor: await cursor.execute(sql, (timestamp, contract_id))
 
     async def invalidate_claim_start_abi(self, conn: aiomysql.Connection, contract_id: int):
         sql = "UPDATE evm_airdrop_eligibility_contract SET claim_start_getter_abi = NULL WHERE id = %s"
-        async with conn.cursor() as cursor:
-            await cursor.execute(sql, (contract_id,))
+        async with conn.cursor() as cursor: await cursor.execute(sql, (contract_id,))
 
     async def update_claim_end_timestamp(self, conn: aiomysql.Connection, contract_id: int, timestamp: int, active_status: int):
         sql = "UPDATE evm_airdrop_eligibility_contract SET claim_end_timestamp = FROM_UNIXTIME(%s), active_status = %s WHERE id = %s"
-        async with conn.cursor() as cursor:
-            await cursor.execute(sql, (timestamp, active_status, contract_id))
+        async with conn.cursor() as cursor: await cursor.execute(sql, (timestamp, active_status, contract_id))
 
     async def invalidate_claim_end_abi(self, conn: aiomysql.Connection, contract_id: int):
         sql = "UPDATE evm_airdrop_eligibility_contract SET claim_end_getter_abi = NULL WHERE id = %s"
-        async with conn.cursor() as cursor:
-            await cursor.execute(sql, (contract_id,))
+        async with conn.cursor() as cursor: await cursor.execute(sql, (contract_id,))
