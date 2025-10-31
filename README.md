@@ -15,7 +15,7 @@ The application is divided into two parts: Scanners and Agent.
 The agent is developed based on the Sentient Agent Framework
 https://github.com/sentient-agi/Sentient-Agent-Framework
 
-## ✅ Airdrop smart contract analysis and suspicious detected scanner development completed
+## ✅ Airdrop smart contract analysis and suspicious detection scanner — development completed.
 
 ## 🚧 In Development
 
