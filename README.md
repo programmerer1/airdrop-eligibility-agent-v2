@@ -131,7 +131,7 @@ docker compose -f docker-compose.yml up -d
 
 - discovered_at - Time of the scanner's last interaction with this record (**For scanners only**)
 
-- last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**). **However, you can specify a block number when adding a new network to the database to indicate to the scanner which block to start scanning from in that network.**
+- last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**). **However, you can specify a block number when adding a new network to the database to indicate to the scanner which block to start scanning from in that network. Default NULL - This means that the scanner will start analyzing from the last found block in the blockchain.**
 
 - active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks. **Default: 1**
 
