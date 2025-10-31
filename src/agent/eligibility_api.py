@@ -118,6 +118,7 @@ class EligibilityApi:
             "amount": f"{formatted_amount} {ticker}",
             "claim_start_date": self.format_timestamp_utc(contract.get("claim_start_timestamp")),
             "claim_end_date": self.format_timestamp_utc(contract.get("claim_end_timestamp")),
+            "token_security": self.format_security_status(int(contract.get("token_analysis_status")))
         }
 
     @staticmethod
@@ -138,7 +139,18 @@ class EligibilityApi:
         utc_dt = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
         readable_format = utc_dt.strftime("%Y-%m-%d %H:%M UTC")
         return readable_format
+
+    @staticmethod
+    def format_security_status(security_status_code: int) -> str:
+        status_map = {
+            0: "Not analyzed",
+            1: "Suspicious",
+            2: "Unsafe",
+            3: "Caution",
+            4: "Verified Safe"
+        }
         
+        return status_map.get(security_status_code, "Unknown")    
 
     async def check_eligibility(self, user_address: str) -> dict:
         """
