@@ -1,4 +1,4 @@
-# <p align="center">Airdrop Eligibility Checker Agent V2</p>
+# <p align="center">AECA (Airdrop Eligibility Checker Agent) V2</p>
 
 <p align="center">
     <img src="https://github.com/programmerer1/airdrop-eligibility-agent-v2/blob/main/logo.jpeg" width="300" alt="logo">
