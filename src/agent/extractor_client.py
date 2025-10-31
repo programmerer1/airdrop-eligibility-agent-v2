@@ -3,6 +3,7 @@ from src.agent.prompts.extractor import system_prompt
 from eth_utils import is_address
 from src.services import extractor_client_llm
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
