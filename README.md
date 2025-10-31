@@ -133,11 +133,11 @@ docker compose -f docker-compose.yml up -d
 
 - last_discovered_block_number - Number of the last block discovered by the scanner (**For scanners only**). **However, you can specify a block number when adding a new network to the database to indicate to the scanner which block to start scanning from in that network.**
 
-- active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks. Default: 1
+- active_status - 0 - The scanner will not look for new blocks in this network, 1 - The scanner will look for blocks. **Default: 1**
 
-- processing_status - 0 - Available for processing, 1 - The scanner has locked and is working with this network (**For scanners only**). Default: 0
+- processing_status - 0 - Available for processing, 1 - The scanner has locked and is working with this network (**For scanners only**). **Default: 0**
 
-- finality_depth - Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest  network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won't "disappear" due to block reversal. Default: 12
+- finality_depth - Protects against reorganizations (reorgs) by forcing EvmScanner to back off from the latest  network block. Logic: Safe_Block_For_Scanning = (Latest_Block_Via_API) - finality_depth. The scanner will only process blocks up to this "safe" number, ensuring that processed data won't "disappear" due to block reversal. **Default: 12**
 
 Example POST request to localhost:8000/assist:
 ```json
