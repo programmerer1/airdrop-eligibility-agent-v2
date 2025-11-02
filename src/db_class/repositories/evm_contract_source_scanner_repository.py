@@ -121,7 +121,7 @@ class EvmContractSourceScannerRepository(BaseRepository):
 
             if metadata_report["possible_spam"] is True:
                 active_status = 0 
-                token_analysis_status = 2 # 2 = unsafe
+                token_analysis_status = 3 # 3 = unsafe
                 logger.warning(f"Contract source_id={source_id} marked as inactive due to possible_spam=true from metadata provider.")
         
         # Конвертируем массив (который содержит 0 или 1 элемент) в JSON

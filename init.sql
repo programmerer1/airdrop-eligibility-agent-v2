@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS evm_airdrop_eligibility_contract (
     token_address CHAR(42) DEFAULT NULL,
     token_ticker VARCHAR(32) DEFAULT NULL,
     token_decimals SMALLINT UNSIGNED DEFAULT 18,
-    token_analysis_status TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = not verified, 1 = suspicious, 2 = unsafe, 3 = caution, 4 = verified safe',
+    token_analysis_status TINYINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '0 = not verified, 1 = The code did not compile, 2 = suspicious, 3 = unsafe, 4 = caution, 5 = verified safe',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     active_status TINYINT NOT NULL DEFAULT 1 COMMENT '0 = inactive, 1 = active',
     token_security_report JSON DEFAULT NULL COMMENT 'For example {{"score": 85, "possible_spam": false,"verified_contract": false, "provider": "moralis API"}, {"error": null, "results": {}, "success": true, "provider": "Slither"}}',

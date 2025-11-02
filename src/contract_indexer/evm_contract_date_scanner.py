@@ -8,7 +8,6 @@ import aiomysql
 from ..db_class.repositories.evm_contract_date_scanner_repository import EvmContractDateScannerRepository
 from ..providers.api_client_interface import AbstractAPIClient
 from ..utils.contract_utils import get_function_selector, decode_timestamp_from_eth_call, is_code_empty
-from .. import services 
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +17,12 @@ class EvmContractDateScanner:
     """
     def __init__(self,
                  repository: EvmContractDateScannerRepository,
+                 api_client: AbstractAPIClient,
                  batch_size: int):
         
         self._repository = repository
         self._batch_size = batch_size
-        self._api: AbstractAPIClient = services.api_client_get_token 
+        self._api = api_client
         logger.info("EvmContractDateScanner initialized.")
         
     async def run(self):
