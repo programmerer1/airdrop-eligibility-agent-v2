@@ -14,7 +14,7 @@ from .contract_indexer.evm_block_scanner import EvmBlockScanner
 from .contract_indexer.evm_transaction_scanner import EvmTransactionScanner
 from .contract_indexer.evm_contract_source_scanner import EvmContractSourceScanner 
 from .contract_indexer.evm_contract_date_scanner import EvmContractDateScanner
-from .contract_indexer.evm_contract_date_scanner import EvmTokenScanner
+from .contract_indexer.evm_token_scanner import EvmTokenScanner
 
 from .utils.abi_filter import AirdropABIFilter 
 from .utils.slither_analyzer import SlitherAnalyzer 
@@ -76,6 +76,7 @@ date_scanner = EvmContractDateScanner(
 token_scanner = EvmTokenScanner(
     repository=services.repo_token_scanner,
     api_client=services.api_client_token_scanner,
+    slither_analyzer=slither_analyzer,
     batch_size=config.EVM_TOKEN_SCANNER_BATCH_SIZE
 )
 

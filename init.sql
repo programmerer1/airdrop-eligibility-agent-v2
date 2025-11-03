@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS evm_airdrop_eligibility_contract (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     evm_network_chain_id INT UNSIGNED NOT NULL,
     evm_contract_source_id BIGINT UNSIGNED NOT NULL UNIQUE,
-    contract_address CHAR(42) NOT NULL COMMENT 'Denormalization to avoid unnecessary JOINs with large data sets',
+    contract_address CHAR(42) NOT NULL COMMENT 'evm_contract_source.contract_address. Denormalization to avoid unnecessary JOINs with large data sets',
     eligibility_function_abi JSON NOT NULL,
     get_token_function_abi JSON DEFAULT NULL,
     claim_start_getter_abi JSON DEFAULT NULL,

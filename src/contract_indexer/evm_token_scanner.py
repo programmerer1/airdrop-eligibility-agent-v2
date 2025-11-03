@@ -45,7 +45,7 @@ class EvmTokenScanner:
         token_data_id = token['id']
         token_address = token['token_address']
         chain_id = token['evm_network_chain_id']
-        token_security_report = json.loads(token['token_security_report'] or '{}')
+        token_security_report = json.loads(token['token_security_report'] or '[]')
         logger.debug(f"Analyzing token_data_id={token_data_id} (Address: {token_address})")
         source_data = await self._api.get_contract_source(chain_id, token_address)
 
@@ -94,15 +94,23 @@ class EvmTokenScanner:
                  logger.debug(f"EvmTokenScanner: Contract {token_address}: Saved as single-file source code wrapped in JSON.")
                  source_code = json.dumps({"source": cleaned_code})
 
-            # --- ЭТАП 2: Анализ Slither ---
-            slither_report_json = await self._slither.analyze_source_code(source['source_code'])
+            # --- Анализ Slither ---
+            slither_report_json = await self._slither.analyze_source_code(source_code)
             if not slither_report_json:
                 logger.error(f"EvmTokenScanner: Slither returned no report for token_data_id={token_data_id}. Rolling back.")
                 raise ValueError(f"EvmTokenScanner: Slither returned no report for token_data_id={token_data_id}")
 
             (security_status, slither_report_str) = self._slither.classify_slither_report(slither_report_json)
 
-            token_security_report.update(slither_report_str)
+            token_security_report.append(
+                {
+                "error": slither_report_json.get('error', ""),
+                "results": slither_report_json.get('results', {}),
+                "success": slither_report_json.get('success', False),
+                "provider": "Slither"
+                }
+            )
+            
             await self._repository.update_token_analysis_status(
                 conn,
                 token_data_id,

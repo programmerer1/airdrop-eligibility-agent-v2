@@ -12,7 +12,7 @@ from .db_class.repositories.evm_block_scanner_repository import EvmBlockScannerR
 from .db_class.repositories.evm_transaction_scanner_repository import EvmTransactionScannerRepository
 from .db_class.repositories.evm_contract_source_scanner_repository import EvmContractSourceScannerRepository
 from .db_class.repositories.evm_contract_date_scanner_repository import EvmContractDateScannerRepository
-from .db_class.repositories.evm_contract_date_scanner_repository import EvmTokenScannerRepository
+from .db_class.repositories.evm_token_scanner_repository import EvmTokenScannerRepository
 
 """
 This file acts as a Service Locator.
