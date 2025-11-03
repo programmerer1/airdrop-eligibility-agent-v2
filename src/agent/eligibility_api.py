@@ -143,11 +143,12 @@ class EligibilityApi:
     @staticmethod
     def format_security_status(security_status_code: int) -> str:
         status_map = {
-            0: "Not analyzed",
-            1: "Suspicious",
-            2: "Unsafe",
-            3: "Caution",
-            4: "Verified Safe"
+            0: "The token's source code has not been audited",
+            1: "Contract code did not compile",
+            2: "Suspicious",
+            3: "Unsafe",
+            4: "Caution",
+            5: "Verified Safe"
         }
         
         return status_map.get(security_status_code, "Unknown")    

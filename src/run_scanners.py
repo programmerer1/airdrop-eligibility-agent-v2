@@ -14,6 +14,7 @@ from .contract_indexer.evm_block_scanner import EvmBlockScanner
 from .contract_indexer.evm_transaction_scanner import EvmTransactionScanner
 from .contract_indexer.evm_contract_source_scanner import EvmContractSourceScanner 
 from .contract_indexer.evm_contract_date_scanner import EvmContractDateScanner
+from .contract_indexer.evm_token_scanner import EvmTokenScanner
 
 from .utils.abi_filter import AirdropABIFilter 
 from .utils.slither_analyzer import SlitherAnalyzer 
@@ -68,7 +69,14 @@ source_scanner = EvmContractSourceScanner(
 
 date_scanner = EvmContractDateScanner(
     repository=services.repo_date_scanner,
-    batch_size=config.EVM_CONTRACT_DATE_SCANNER_BATCH_SIZE
+    api_client=services.api_client_date_scanner
+)
+
+token_scanner = EvmTokenScanner(
+    repository=services.repo_token_scanner,
+    api_client=services.api_client_token_scanner,
+    slither_analyzer=slither_analyzer,
+    batch_size=config.EVM_TOKEN_SCANNER_BATCH_SIZE
 )
 
 async def run_scanner_loop(scanner_name: str, scanner_instance, interval: int):
@@ -111,6 +119,9 @@ async def main():
             )),
             asyncio.create_task(run_scanner_loop(
                 "EvmContractDateScanner", date_scanner, config.EVM_CONTRACT_DATE_SCANNER_RUN_INTERVAL
+            )),
+            asyncio.create_task(run_scanner_loop(
+                "EvmTokenScanner", token_scanner, config.EVM_TOKEN_SCANNER_RUN_INTERVAL
             )),
         ]
         

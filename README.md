@@ -15,14 +15,6 @@ The application is divided into two parts: Scanners and Agent.
 The agent is developed based on the Sentient Agent Framework
 https://github.com/sentient-agi/Sentient-Agent-Framework
 
-## ✅ Airdrop smart contract analysis and suspicious detection scanner — development completed.
-
-## 🚧 In Development
-
-A new feature is currently being developed — a **scanner** that analyzes the security of **token** smart contracts.
-
-Status: In progress  
-Goal: Add automatic detection of suspicious **token** contracts 
 
 ---
 ## Scanner Lifecycle
@@ -77,6 +69,14 @@ The entire process, from block detection to final contract analysis, is divided 
     2.  **Search for "Dead" (eth_getCode):** Finds active contracts whose end date is not yet known. It makes an `eth_getCode` request. If the contract has been destroyed, the scanner marks it as inactive.
     3.  **Search for End Date:** For "live" contracts that have a function to get the end date (but the date itself is not yet known), the scanner makes an `eth_call` to get and record this date.
     4.  **Search for Start Date:** Does the same for the claim start date.
+
+### 6. Token Security Scanner
+
+* **Objective:** Token security analysis.
+* **Process:**
+    1. **Search for unverified tokens:** Find unverified tokens that are active and have addresses.
+    2. **Api request** Send an API request to the token address to get the source code.
+    3. **Security Analysis (Slither):** The code is run through `Slither`. It looks for vulnerabilities. The results (including compilation errors or dangerous findings) are saved in a security report. Dangerous tokens are disabled.
 
 ---
 ## Database Structure

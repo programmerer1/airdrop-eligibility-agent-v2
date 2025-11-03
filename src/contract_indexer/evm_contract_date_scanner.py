@@ -8,7 +8,6 @@ import aiomysql
 from ..db_class.repositories.evm_contract_date_scanner_repository import EvmContractDateScannerRepository
 from ..providers.api_client_interface import AbstractAPIClient
 from ..utils.contract_utils import get_function_selector, decode_timestamp_from_eth_call, is_code_empty
-from .. import services 
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +17,10 @@ class EvmContractDateScanner:
     """
     def __init__(self,
                  repository: EvmContractDateScannerRepository,
-                 batch_size: int):
+                 api_client: AbstractAPIClient):
         
         self._repository = repository
-        self._batch_size = batch_size
-        self._api: AbstractAPIClient = services.api_client_get_token 
+        self._api = api_client
         logger.info("EvmContractDateScanner initialized.")
         
     async def run(self):
@@ -71,7 +69,7 @@ class EvmContractDateScanner:
         
         try:
             # 1. Выбираем пачку (БЕЗ БЛОКИРОВКИ)
-            contracts_to_check = await self._repository.get_contracts_for_code_check(self._batch_size)
+            contracts_to_check = await self._repository.get_contracts_for_code_check()
             if not contracts_to_check:
                 logger.debug("No contracts found for eth_getCode check.")
                 return
@@ -129,7 +127,7 @@ class EvmContractDateScanner:
         
         try:
             # 1. Выбрать пачку (БЕЗ БЛОКИРОВКИ)
-            contracts_to_check = await getter_method(self._batch_size)
+            contracts_to_check = await getter_method()
             if not contracts_to_check:
                 logger.debug(f"No contracts found for {check_type} check.")
                 return

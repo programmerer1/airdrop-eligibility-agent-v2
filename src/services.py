@@ -12,6 +12,7 @@ from .db_class.repositories.evm_block_scanner_repository import EvmBlockScannerR
 from .db_class.repositories.evm_transaction_scanner_repository import EvmTransactionScannerRepository
 from .db_class.repositories.evm_contract_source_scanner_repository import EvmContractSourceScannerRepository
 from .db_class.repositories.evm_contract_date_scanner_repository import EvmContractDateScannerRepository
+from .db_class.repositories.evm_token_scanner_repository import EvmTokenScannerRepository
 
 """
 This file acts as a Service Locator.
@@ -35,6 +36,7 @@ if config.SCANNERS_API_PARALLEL_MODE:
     lock_tx_scanner = asyncio.Lock()
     lock_date_scanner = asyncio.Lock()
     lock_get_token = asyncio.Lock()
+    lock_token_scanner = asyncio.Lock()
 else:
     # SINGLE MODE (default): All clients share one lock
     # This will put all requests in a single queue.
@@ -44,6 +46,7 @@ else:
     lock_tx_scanner = single_global_lock
     lock_date_scanner = single_global_lock
     lock_get_token = single_global_lock
+    lock_token_scanner = single_global_lock
 
 db_connector = MySQLConnector(minsize=1, maxsize=10, autocommit=False)
 
@@ -53,6 +56,7 @@ repo_block = EvmBlockScannerRepository(db_connector)
 repo_tx = EvmTransactionScannerRepository(db_connector)
 repo_source = EvmContractSourceScannerRepository(db_connector)
 repo_date_scanner = EvmContractDateScannerRepository(db_connector)
+repo_token_scanner = EvmTokenScannerRepository(db_connector)
 
 # --- EvmScanner API client ---
 api_client_evm = EtherscanAPIClient(
@@ -92,6 +96,16 @@ api_client_date_scanner = EtherscanAPIClient(
     timeout=config.EVM_CONTRACT_DATE_SCANNER_API_TIMEOUT,
     lock=lock_date_scanner,
     proxy_url=config.EVM_CONTRACT_DATE_SCANNER_API_PROXY_URL
+)
+
+# --- EvmTokenScanner API client ---
+api_client_token_scanner = EtherscanAPIClient(
+    base_url=config.EVM_TOKEN_SCANNER_API_URL,
+    api_key=config.EVM_TOKEN_SCANNER_API_KEY,
+    delay_seconds=config.EVM_API_REQUEST_DELAY,
+    timeout=config.EVM_TOKEN_SCANNER_API_TIMEOUT,
+    lock=lock_token_scanner,
+    proxy_url=config.EVM_TOKEN_SCANNER_API_PROXY_URL
 )
 
 # ---  API client for fetching the token address ---
