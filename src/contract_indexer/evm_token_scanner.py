@@ -27,7 +27,7 @@ class EvmTokenScanner:
         async with (await self._repository.pool).acquire() as conn:
             await conn.begin()
             try:
-                tokens_to_scan = await self._repository.get_not_verified_token_data(conn, self._batch_size)
+                tokens_to_scan = await self._repository.get_unverified_tokens_data(conn, self._batch_size)
                 if not tokens_to_scan:
                     logger.info("EvmTokenScanner: No new token found for analysis.")
                     await conn.commit()

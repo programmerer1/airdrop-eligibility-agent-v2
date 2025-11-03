@@ -72,8 +72,11 @@ The entire process, from block detection to final contract analysis, is divided 
 
 ### 6. Token Security Scanner
 
-* **Objective:** .
-* **Process:** :
+* **Objective:** Token security analysis.
+* **Process:**
+    1. **Search for unverified tokens:** Find unverified tokens that are active and have addresses.
+    2. **Api request** Send an API request to the token address to get the source code.
+    3. **Security Analysis (Slither):** The code is run through `Slither`. It looks for vulnerabilities. The results (including compilation errors or dangerous findings) are saved in a security report. Dangerous tokens are disabled.
 
 ---
 ## Database Structure

@@ -12,7 +12,7 @@ class EvmTokenScannerRepository(BaseRepository):
     Репозиторий для EvmTokenScanner.
     """
 
-    async def get_not_verified_token_data(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_unverified_tokens_data(self, conn: aiomysql.Connection, batch_size: int) -> List[Dict[str, Any]]:
         sql = """
             SELECT id, token_address, evm_network_chain_id, token_security_report
             FROM evm_airdrop_eligibility_contract
