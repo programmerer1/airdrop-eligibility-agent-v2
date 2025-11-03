@@ -36,7 +36,7 @@ class EvmContractDateScannerRepository(BaseRepository):
                 raise 
         return affected_rows
 
-    async def get_contracts_for_code_check(self, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_code_check(self) -> List[Dict[str, Any]]:
         """
         ШАГ 2: Выбирает ВСЕ активные контракты, где claim_end_timestamp IS NULL.
         (Простой SELECT, без блокировок)
@@ -46,14 +46,13 @@ class EvmContractDateScannerRepository(BaseRepository):
             FROM evm_airdrop_eligibility_contract
             WHERE active_status = 1
               AND claim_end_timestamp IS NULL
-            LIMIT %s
         """
         async with (await self.pool).acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cursor:
-                await cursor.execute(sql, (batch_size,))
+                await cursor.execute(sql)
                 return await cursor.fetchall()
             
-    async def get_contracts_for_claim_start_check(self, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_claim_start_check(self) -> List[Dict[str, Any]]:
         """
         ШАГ 4: Выбирает контракты, где нужно проверить claim_start_timestamp.
         """
@@ -63,14 +62,13 @@ class EvmContractDateScannerRepository(BaseRepository):
             WHERE active_status = 1
               AND claim_start_timestamp IS NULL
               AND claim_start_getter_abi IS NOT NULL
-            LIMIT %s
         """
         async with (await self.pool).acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cursor:
-                await cursor.execute(sql, (batch_size,))
+                await cursor.execute(sql)
                 return await cursor.fetchall()
 
-    async def get_contracts_for_claim_end_check(self, batch_size: int) -> List[Dict[str, Any]]:
+    async def get_contracts_for_claim_end_check(self) -> List[Dict[str, Any]]:
         """
         ШАГ 3: Выбирает (уже проверенные на eth_getCode) контракты.
         """
@@ -80,11 +78,10 @@ class EvmContractDateScannerRepository(BaseRepository):
             WHERE active_status = 1
               AND claim_end_timestamp IS NULL
               AND claim_end_getter_abi IS NOT NULL
-            LIMIT %s
         """
         async with (await self.pool).acquire() as conn:
             async with conn.cursor(aiomysql.DictCursor) as cursor:
-                await cursor.execute(sql, (batch_size,))
+                await cursor.execute(sql)
                 return await cursor.fetchall()
 
     async def deactivate_contract_batch(self, conn: aiomysql.Connection, contract_ids: List[int]):

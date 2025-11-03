@@ -144,7 +144,7 @@ class EligibilityApi:
     def format_security_status(security_status_code: int) -> str:
         status_map = {
             0: "The token's source code has not been audited",
-            1: "Contract code did not compile"
+            1: "Contract code did not compile",
             2: "Suspicious",
             3: "Unsafe",
             4: "Caution",

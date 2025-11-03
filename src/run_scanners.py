@@ -69,8 +69,7 @@ source_scanner = EvmContractSourceScanner(
 
 date_scanner = EvmContractDateScanner(
     repository=services.repo_date_scanner,
-    api_client=services.api_client_date_scanner,
-    batch_size=config.EVM_CONTRACT_DATE_SCANNER_BATCH_SIZE
+    api_client=services.api_client_date_scanner
 )
 
 token_scanner = EvmTokenScanner(
